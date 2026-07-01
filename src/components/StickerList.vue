@@ -3,13 +3,34 @@
     <ion-searchbar
       :value="searchQuery"
       placeholder="Pesquisar jogador ou seleção"
-      @ionInput="(ev: CustomEvent) => emit('update:searchQuery', ev.detail.value || '')"
+      @ionInput="(ev: CustomEvent) => handleSearch(ev.detail.value || '')"
     />
 
     <div class="filters">
-      <ion-button size="small" :fill="currentFilter === 'all' ? 'solid' : 'outline'" color="primary" @click="emit('setFilter', 'all')">Todas</ion-button>
-      <ion-button size="small" :fill="currentFilter === 'collected' ? 'solid' : 'outline'" color="success" @click="emit('setFilter', 'collected')">Coletadas</ion-button>
-      <ion-button size="small" :fill="currentFilter === 'pending' ? 'solid' : 'outline'" color="danger" @click="emit('setFilter', 'pending')">Pendentes</ion-button>
+      <ion-button 
+        size="small" 
+        :fill="currentFilter === 'all' ? 'solid' : 'outline'" 
+        color="primary" 
+        @click="handleFilter('all')"
+      >
+        Todas
+      </ion-button>
+      <ion-button 
+        size="small" 
+        :fill="currentFilter === 'collected' ? 'solid' : 'outline'" 
+        color="success" 
+        @click="handleFilter('collected')"
+      >
+        Coletadas
+      </ion-button>
+      <ion-button 
+        size="small" 
+        :fill="currentFilter === 'pending' ? 'solid' : 'outline'" 
+        color="danger" 
+        @click="handleFilter('pending')"
+      >
+        Pendentes
+      </ion-button>
     </div>
 
     <p class="summary">{{ albumSummary.collected }} / {{ albumSummary.total }} figurinhas — {{ albumSummary.percentage }}%</p>
@@ -24,19 +45,37 @@
         v-for="sticker in filteredStickers"
         :key="sticker.id"
         :sticker="sticker"
-        @toggle="(id) => emit('toggleSticker', id)"
+        @toggle="(id) => handleToggle(id)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Sticker, FilterType, AlbumSummary } from '../types'
 import { IonSearchbar, IonButton, IonIcon } from '@ionic/vue'
 import { sadOutline } from 'ionicons/icons'
 import StickerCard from './StickerCard.vue'
 
-defineProps<{
+// Definindo o tipo do sticker
+interface Sticker {
+  id: number
+  nome: string
+  selecao: string
+  foto: string
+  coletada: boolean
+  raridade: string
+  grupo: string
+}
+
+interface AlbumSummary {
+  total: number
+  collected: number
+  percentage: number
+}
+
+type FilterType = 'all' | 'collected' | 'pending'
+
+const props = defineProps<{
   filteredStickers: Sticker[]
   albumSummary: AlbumSummary
   searchQuery: string
@@ -48,6 +87,18 @@ const emit = defineEmits<{
   (e: 'setFilter', filter: FilterType): void
   (e: 'toggleSticker', id: number): void
 }>()
+
+const handleSearch = (value: string) => {
+  emit('update:searchQuery', value)
+}
+
+const handleFilter = (filter: FilterType) => {
+  emit('setFilter', filter)
+}
+
+const handleToggle = (id: number) => {
+  emit('toggleSticker', id)
+}
 </script>
 
 <style scoped>
@@ -60,6 +111,7 @@ const emit = defineEmits<{
   gap: 8px;
   justify-content: center;
   margin: 8px 0;
+  flex-wrap: wrap;
 }
 
 .summary {

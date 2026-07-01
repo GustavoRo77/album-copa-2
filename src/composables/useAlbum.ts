@@ -1,71 +1,74 @@
+// src/composables/useAlbum.ts
 import { ref, computed, watch } from 'vue'
-import type { Sticker, FilterType, AlbumSummary } from '../types'
-import { stickersData } from '../data/stickersData'
+import { stickers as initialStickers } from '../data/stickersData'
 
 const STORAGE_KEY = 'album_copa_stickers'
 
-function loadStickers(): Sticker[] {
+// Carregar do localStorage ou usar os dados iniciais
+function loadStickers() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
-      const saved: { id: number; collected: boolean }[] = JSON.parse(raw)
-      return stickersData.map(s => ({
+      const saved = JSON.parse(raw)
+      // Mesclar com os dados iniciais para garantir que todos os campos existam
+      return initialStickers.map(s => ({
         ...s,
-        collected: saved.find(x => x.id === s.id)?.collected ?? s.collected
+        coletada: saved.find((x: any) => x.id === s.id)?.coletada ?? s.coletada
       }))
     }
   } catch {
     // ignore
   }
-  return [...stickersData]
+  return [...initialStickers]
 }
 
-const stickers = ref<Sticker[]>(loadStickers())
-const searchQuery = ref<string>('')
-const currentFilter = ref<FilterType>('all')
+const stickers = ref(loadStickers())
 
 watch(
   stickers,
   (val) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(val.map(s => ({ id: s.id, collected: s.collected }))))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(val.map(s => ({ id: s.id, coletada: s.coletada }))))
   },
   { deep: true }
 )
 
 export function useAlbum() {
+  const searchQuery = ref('')
+  const currentFilter = ref<'all' | 'collected' | 'pending'>('all')
+
   const filteredStickers = computed(() => {
     let result = stickers.value
 
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       result = result.filter(s =>
-        s.name.toLowerCase().includes(query) ||
-        s.country.toLowerCase().includes(query)
+        s.nome.toLowerCase().includes(query) ||
+        s.selecao.toLowerCase().includes(query)
       )
     }
 
     if (currentFilter.value === 'collected') {
-      result = result.filter(s => s.collected === true)
+      result = result.filter(s => s.coletada === true)
     } else if (currentFilter.value === 'pending') {
-      result = result.filter(s => s.collected === false)
+      result = result.filter(s => s.coletada === false)
     }
 
     return result
   })
 
-  const collectedStickers = computed(() => stickers.value.filter(s => s.collected))
+  const collectedStickers = computed(() => stickers.value.filter(s => s.coletada))
 
-  const albumSummary = computed<AlbumSummary>(() => {
+  const albumSummary = computed(() => {
     const total = stickers.value.length
-    const collected = stickers.value.filter(s => s.collected).length
-    const percentage = total > 0 ? (collected / total) * 100 : 0
-    return { total, collected, percentage: Math.round(percentage) }
+    const collected = stickers.value.filter(s => s.coletada).length
+    const percentage = total > 0 ? Math.round((collected / total) * 100) : 0
+    return { total, collected, percentage }
   })
 
   const toggleCollected = (stickerId: number) => {
     const sticker = stickers.value.find(s => s.id === stickerId)
     if (sticker) {
-      sticker.collected = !sticker.collected
+      sticker.coletada = !sticker.coletada
     }
   }
 
@@ -73,13 +76,9 @@ export function useAlbum() {
     searchQuery.value = query
   }
 
-  const setFilter = (filter: FilterType) => {
+  const setFilter = (filter: 'all' | 'collected' | 'pending') => {
     currentFilter.value = filter
   }
-
-  const getStickersByGroup = (group: string) => stickers.value.filter(s => s.group === group)
-
-  const groups = computed(() => Array.from(new Set(stickers.value.map(s => s.group))).sort())
 
   return {
     stickers,
@@ -91,7 +90,5 @@ export function useAlbum() {
     toggleCollected,
     searchStickers,
     setFilter,
-    getStickersByGroup,
-    groups
   }
 }
