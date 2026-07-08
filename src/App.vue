@@ -12,6 +12,7 @@ import { initDatabase } from './services/database';
 
 onMounted(async () => {
   try {
+    console.log('🚀 Iniciando banco de dados...');
     await initDatabase();
     console.log('✅ Banco de dados inicializado com sucesso!');
   } catch (error) {

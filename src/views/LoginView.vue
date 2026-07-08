@@ -1,3 +1,4 @@
+<!-- src/views/LoginView.vue -->
 <template>
   <ion-page>
     <ion-content>
@@ -24,29 +25,32 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
-  IonPage, 
-  IonContent, 
-  IonIcon, 
-  IonToast 
-} from '@ionic/vue'
+import { IonPage, IonContent, IonIcon, IonToast } from '@ionic/vue'
 import { trophyOutline } from 'ionicons/icons'
 import LoginForm from '../components/LoginForm.vue'
 import { useAuth } from '../composables/useAuth'
+import { useAlbum } from '../composables/useAlbum'
 
 const router = useRouter()
 const { login, errorMessage } = useAuth()
+const { carregarFigurinhas } = useAlbum()
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastColor = ref('danger')
 
-const handleLogin = (email: string, password: string) => {
-  const success = login(email, password)
+const handleLogin = async (email: string, password: string) => {
+  console.log('🔐 Tentando login...')
+  const success = await login(email, password)
   
   if (success) {
     toastMessage.value = 'Login realizado com sucesso!'
     toastColor.value = 'success'
     showToast.value = true
+    
+    console.log('✅ Login OK, carregando figurinhas...')
+    await carregarFigurinhas()
+    console.log('📊 Figurinhas carregadas')
+    
     setTimeout(() => {
       router.push('/album')
     }, 1500)

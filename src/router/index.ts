@@ -1,3 +1,4 @@
+// src/router/index.ts
 import { createRouter, createWebHistory } from '@ionic/vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
@@ -33,6 +34,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/about',
     component: () => import('../views/AboutView.vue')
+  },
+  {
+    path: '/achievements',
+    component: () => import('../views/AchievementsView.vue')
   }
 ]
 

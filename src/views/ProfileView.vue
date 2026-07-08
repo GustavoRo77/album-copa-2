@@ -4,6 +4,11 @@
     
     <ion-content>
       <div class="profile-content" v-if="currentUser">
+        <ion-button fill="clear" class="back-button" @click="goBack">
+          <ion-icon :icon="arrowBackOutline" slot="start" />
+          Voltar
+        </ion-button>
+
         <ion-card>
           <ion-card-header>
             <ion-card-title>Perfil do Usuário</ion-card-title>

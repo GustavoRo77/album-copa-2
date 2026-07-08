@@ -29,8 +29,8 @@ const showToast = ref(false)
 const toastMessage = ref('')
 const toastColor = ref('danger')
 
-const handleRegister = (name: string, email: string, password: string) => {
-  const success = register(name, email, password)
+const handleRegister = async (name: string, email: string, password: string) => {
+  const success = await register(name, email, password)
   
   if (success) {
     toastMessage.value = 'Cadastro realizado com sucesso!'
